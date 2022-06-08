@@ -1,0 +1,38 @@
+<html>
+  <head>
+    <script
+      src="https://cdn.socket.io/4.4.1/socket.io.min.js"
+      integrity="sha384-fKnu0iswBIqkjxrhQCTZ7qlLHOFEgNkRmK2vaO/LbTZSXdJfAu6ewRBdwHPhBo/H"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <div id="conway"></div>
+    <script>
+      const conwaySocket = io('ws://localhost:8000/game', {
+        auth: {
+          authorization: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjA3OTgzNTQ3MDA0MSIsImNvbG9yIjoiIzEyMzQ1NiIsImlhdCI6MTY0NjM4NDg3N30.fCWHQbtXDMssgkuu4J1ZwW-DbyXPbFr9WqYfgz-Aerk`,
+        },
+      });
+      let player;
+      let players;
+      let board;
+
+      conwaySocket.on('start', (player, players, board) => {
+        player = player;
+        players = players;
+        board = board;
+
+        conwaySocket.emit('revive_cell', 1, 1, player.id);
+      });
+
+      conwaySocket.on('update_board', (board) => {});
+
+      conwaySocket.on('connect_error', (err) => {});
+
+      conwaySocket.on('unauthenticated', (err) => {
+        conwaySocket.disconnect();
+      });
+    </script>
+  </body>
+</html>

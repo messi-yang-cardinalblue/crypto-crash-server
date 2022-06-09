@@ -1,25 +1,10 @@
 import { Socket } from 'socket.io';
-import { Token, createToken } from '../../entity/token';
+import { Token } from '../../entity/token';
 import { Player } from '../../entity/player';
 import { Transaction } from '../../entity/transaction';
 import { CryptoCrash } from '../../lib/cryptoCrash';
 
-const token1: Token = createToken('Catcoin', 100);
-const token2: Token = createToken('Dogcoin', 100);
-const token3: Token = createToken('Birdcoin', 100);
-const cryptoCrash = new CryptoCrash([token1, token2, token3]);
-
-// const messiPlayer: Player = cryptoCrash.addPlayer('Messi', 10000);
-// const johnPlayer: Player = cryptoCrash.addPlayer('John', 10000);
-// const lichinPlayer: Player = cryptoCrash.addPlayer('Lichin', 10000);
-// const christinePlayer: Player = cryptoCrash.addPlayer('Christine', 10000);
-
-// cryptoCrash.addTransaction(messiPlayer.id, token1.id, 10);
-// cryptoCrash.addTransaction(messiPlayer.id, token1.id, 100);
-// cryptoCrash.addTransaction(messiPlayer.id, token1.id, -100);
-// cryptoCrash.addTransaction(messiPlayer.id, token1.id, -100);
-// cryptoCrash.addTransaction(lichinPlayer.id, token1.id, 50);
-// cryptoCrash.addTransaction(christinePlayer.id, token1.id, 90);
+const cryptoCrash = new CryptoCrash();
 
 const subscribers: {
   [playerId: string]: any;
@@ -39,7 +24,16 @@ const updateAllTokenPrices = () => {
     subscribers[playerId](cryptoCrash.output());
   });
 };
-setInterval(updateAllTokenPrices, 1000);
+let updateAllTokenPricesInterval: any;
+const stopGame = () => {
+  if (updateAllTokenPricesInterval) {
+    clearInterval(updateAllTokenPricesInterval);
+  }
+};
+const startGame = () => {
+  updateAllTokenPricesInterval = setInterval(updateAllTokenPrices, 1000);
+};
+startGame();
 
 enum SocketEventName {
   LoggedIn = 'LOGGED_IN',
@@ -48,8 +42,12 @@ enum SocketEventName {
   PlayerJoined = 'PLAYER_JOINED',
   PlayerLeft = 'PLAYER_LEFT',
   TokenExchanged = 'TOKEN_EXCHANGED',
+  MessageAnnounced = 'MESSAGE_ANNOUNCED',
   ExchangeToken = 'EXCHANGE_TOKEN',
-  JoinGame = 'JOIN_GAME',
+  StopGame = 'STOP_GAME',
+  StartGame = 'START_GAME',
+  ResetGame = 'RESET_GAME',
+  AnnounceMessage = 'ANNOUNCE_MESSAGE',
 }
 
 export const gameAuthenticator = (socket: Socket, next: any) => {
@@ -57,7 +55,7 @@ export const gameAuthenticator = (socket: Socket, next: any) => {
   if (!name) {
     return;
   }
-  const newPlayer = cryptoCrash.addPlayer(name, 10000);
+  const newPlayer = cryptoCrash.addPlayer(name);
   socket.data.player = newPlayer;
   next();
 };
@@ -67,6 +65,7 @@ const subscribeTokenPricesUpdateEvent = (nop: Socket) => {
   subscribers[player.id] = (progress: any) => {
     emitPlayerUpdatedEvent(nop);
     nop.emit(SocketEventName.GameUpdated, progress);
+    nop.emit(SocketEventName.PlayerUpdated, player);
   };
 };
 
@@ -113,6 +112,43 @@ const brodcastPlayerLeftEvent = (nop: Socket, player: Player) => {
   nop.broadcast.emit(SocketEventName.PlayerLeft, player);
 };
 
+const brodcastMessageAnnouncedEvent = (
+  nop: Socket,
+  type: number,
+  msg: string
+) => {
+  nop.broadcast.emit(SocketEventName.MessageAnnounced, type, msg);
+  nop.emit(SocketEventName.MessageAnnounced, type, msg);
+};
+
+const handleStopGameEvent = (nop: Socket) => {
+  nop.on(SocketEventName.StopGame, () => {
+    stopGame();
+  });
+};
+
+const handleStartGameEvent = (nop: Socket) => {
+  nop.on(SocketEventName.StartGame, () => {
+    startGame();
+  });
+};
+
+const handleResetGameEvent = (nop: Socket) => {
+  nop.on(SocketEventName.ResetGame, () => {
+    cryptoCrash.reset();
+
+    Object.keys(subscribers).forEach((playerId) => {
+      subscribers[playerId](cryptoCrash.output());
+    });
+  });
+};
+
+const handleAnnounceMessage = (nop: Socket) => {
+  nop.on(SocketEventName.AnnounceMessage, (type: number, msg: string) => {
+    brodcastMessageAnnouncedEvent(nop, type, msg);
+  });
+};
+
 const handleDisconnect = (nop: Socket) => {
   nop.on('disconnect', () => {
     const player: Player = nop.data.player;
@@ -129,6 +165,14 @@ export const gameHandler = (nop: Socket) => {
   brodcastPlayerJoinedEvent(nop);
 
   handleExchangeTokenEvent(nop);
+
+  handleAnnounceMessage(nop);
+
+  handleStopGameEvent(nop);
+
+  handleStartGameEvent(nop);
+
+  handleResetGameEvent(nop);
 
   handleDisconnect(nop);
 };

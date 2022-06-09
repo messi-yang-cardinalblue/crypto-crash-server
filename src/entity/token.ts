@@ -12,6 +12,6 @@ export function createToken(name: string, price: number): Token {
     id: uuidv4(),
     name,
     price,
-    historyPrices: [],
+    historyPrices: [price],
   };
 }

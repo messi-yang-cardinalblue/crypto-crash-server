@@ -5,14 +5,23 @@ import { Transaction, createTransaction } from '../entity/transaction';
 
 export class CryptoCrash {
   private id: string;
+  private initialCash: number = 3000000;
   private players: Player[];
   private tokens: Token[];
   private transactions: Transaction[];
 
-  constructor(tokens: Token[]) {
+  constructor() {
     this.id = uuidv4();
     this.players = [];
-    this.tokens = tokens;
+    this.tokens = [
+      createToken('Batcoin', 100),
+      createToken('Etherun', 100),
+      createToken('Dogycoin', 100),
+      createToken('Beyonce', 100),
+      createToken('PicCoin', 100),
+      createToken('Luna', 100),
+      createToken('Chiwawacoin', 100),
+    ];
     this.transactions = [];
   }
   public output() {
@@ -25,16 +34,28 @@ export class CryptoCrash {
           historyPrices: this.getLastItemsFromArray(token.historyPrices, 30),
         };
       }),
-      transactions: this.transactions,
     };
+  }
+  public reset() {
+    this.transactions = [];
+    this.players.forEach((p) => {
+      p.cash = this.initialCash;
+      Object.keys(p.tokenOwnerships).forEach(
+        (tokenId) => (p.tokenOwnerships[tokenId].amount = 0)
+      );
+    });
+    this.tokens.forEach((t) => {
+      t.price = t.historyPrices[0];
+      t.historyPrices = [t.price];
+    });
   }
   public addToken(name: string, price: number): Token {
     const newToken = createToken(name, price);
     this.tokens.push(newToken);
     return newToken;
   }
-  public addPlayer(name: string, cash: number): Player {
-    const newPlayer = createPlayer(name, cash);
+  public addPlayer(name: string): Player {
+    const newPlayer = createPlayer(name, this.initialCash);
     const tokens = this.getTokens();
     tokens.forEach((t) => {
       newPlayer.tokenOwnerships[t.id] = { amount: 0 };

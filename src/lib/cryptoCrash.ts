@@ -104,7 +104,7 @@ export class CryptoCrash {
   private getPlayer(playerId: string): Player | null {
     return this.players.find((p) => p.id === playerId) || null;
   }
-  private getToken(tokenId: string): Token | null {
+  public getToken(tokenId: string): Token | null {
     return this.tokens.find((t) => t.id === tokenId) || null;
   }
   private getLastItemsFromArray<T>(items: T[], count: number) {

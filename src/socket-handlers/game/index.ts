@@ -24,19 +24,22 @@ const cryptoCrash = new CryptoCrash([token1, token2, token3]);
 const subscribers: {
   [playerId: string]: any;
 } = {};
-const updateTokenPrices = () => {
-  cryptoCrash.getTokens().forEach((t: Token) => {
-    const percent = Math.round(Math.random() * 200 - 100) / 1000;
-    const newPrice = t.price + percent * t.price;
-    cryptoCrash.updateTokenPrice(t.id, Math.round(newPrice * 100) / 100);
+const updateAllTokenPrices = () => {
+  const allTokens = cryptoCrash.getTokens();
+  allTokens.forEach((token: Token) => {
+    /* -10% ~ +10% */
+    const marginPercent = Math.round(Math.random() * 200 - 100) / 1000;
+    const newPrice = token.price + marginPercent * token.price;
+    const newPriceWithPrecisionOfTwo = Math.round(newPrice * 100) / 100;
+    cryptoCrash.updateTokenPrice(token.id, newPriceWithPrecisionOfTwo);
   });
 
-  const output = cryptoCrash.output();
+  /* Emit new information to client */
   Object.keys(subscribers).forEach((playerId) => {
-    subscribers[playerId](output);
+    subscribers[playerId](cryptoCrash.output());
   });
 };
-setInterval(updateTokenPrices, 1000);
+setInterval(updateAllTokenPrices, 1000);
 
 enum SocketEventName {
   LoggedIn = 'LOGGED_IN',
@@ -87,15 +90,22 @@ const brodcastPlayerJoinedEvent = (nop: Socket) => {
 const handleExchangeTokenEvent = (nop: Socket) => {
   nop.on(SocketEventName.ExchangeToken, (tokenId: string, amount: number) => {
     const player: Player = nop.data.player;
-    const transaction: Transaction | null = cryptoCrash.addTransaction(
+    const newTransaction = cryptoCrash.addTransaction(
       player.id,
       tokenId,
       amount
     );
-    if (transaction) {
-      broadcastTokenExchangedEvent(nop, transaction);
+    // If you want to interfere the token price after each transaction, do it here
+    // const token = cryptoCrash.getToken(tokenId);
+    // if (token) {
+    //   const tokenPrice = token.price * 10;
+    //   cryptoCrash.updateTokenPrice(tokenId, tokenPrice);
+    // }
+
+    if (newTransaction) {
+      broadcastTokenExchangedEvent(nop, newTransaction);
+      emitPlayerUpdatedEvent(nop);
     }
-    emitPlayerUpdatedEvent(nop);
   });
 };
 

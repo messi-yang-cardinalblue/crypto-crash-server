@@ -22,12 +22,7 @@ export class CryptoCrash {
       tokens: this.tokens.map((token) => {
         return {
           ...token,
-          historyPrices: token.historyPrices.slice(
-            token.historyPrices.length > 10
-              ? token.historyPrices.length - 10
-              : 0,
-            token.historyPrices.length
-          ),
+          historyPrices: this.getLastItemsFromArray(token.historyPrices, 30),
         };
       }),
       transactions: this.transactions,
@@ -111,5 +106,11 @@ export class CryptoCrash {
   }
   private getToken(tokenId: string): Token | null {
     return this.tokens.find((t) => t.id === tokenId) || null;
+  }
+  private getLastItemsFromArray<T>(items: T[], count: number) {
+    return items.slice(
+      items.length > count ? items.length - 10 : 0,
+      items.length
+    );
   }
 }

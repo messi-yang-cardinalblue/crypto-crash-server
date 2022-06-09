@@ -10,7 +10,7 @@
   "scripts": {
     "heroku-prebuild": "yarn install",
     "heroku-postbuild": "yarn build",
-    "dev": "nodemon src/app.ts",
+    "dev": "nodemon src/app.ts -s 0.0.0.0",
     "start": "node dist/app.js",
     "build": "tsc -p .",
     "lint": "eslint --ext .ts src/",

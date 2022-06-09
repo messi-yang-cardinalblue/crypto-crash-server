@@ -4,6 +4,11 @@ export type Player = {
   id: string;
   name: string;
   cash: number;
+  tokenOwnerships: {
+    [tokenId: string]: {
+      amount: number;
+    };
+  };
 };
 
 export function createPlayer(name: string, cash: number): Player {
@@ -11,5 +16,6 @@ export function createPlayer(name: string, cash: number): Player {
     id: uuidv4(),
     name,
     cash,
+    tokenOwnerships: {},
   };
 }

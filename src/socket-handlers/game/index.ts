@@ -18,24 +18,31 @@ cryptoCrash.addTransaction(messiPlayer.id, token1.id, 10);
 cryptoCrash.addTransaction(messiPlayer.id, token1.id, 100);
 cryptoCrash.addTransaction(messiPlayer.id, token1.id, -100);
 cryptoCrash.addTransaction(messiPlayer.id, token1.id, -100);
-cryptoCrash.addTransaction(lichinPlayer.id, token1.id, 100);
-cryptoCrash.addTransaction(christinePlayer.id, token1.id, 100);
+cryptoCrash.addTransaction(lichinPlayer.id, token1.id, 50);
+cryptoCrash.addTransaction(christinePlayer.id, token1.id, 90);
 
 const subscribers: {
   [playerId: string]: any;
 } = {};
-setInterval(() => {
+const updateTokenPrices = () => {
+  cryptoCrash.getTokens().forEach((t) => {
+    cryptoCrash.updateTokenPrice(t.id, Math.round(Math.random() * 10000) / 100);
+  });
+
   const output = cryptoCrash.output();
   Object.keys(subscribers).forEach((playerId) => {
     subscribers[playerId](output);
   });
-}, 1000);
+};
+setInterval(updateTokenPrices, 1000);
 
 enum SocketEventName {
   LoggedIn = 'LOGGED_IN',
   GameUpdated = 'GAME_UPDATED',
+  PlayerUpdated = 'PLAYER_UPDATED',
   PlayerJoined = 'PLAYER_JOINED',
   PlayerLeft = 'PLAYER_LEFT',
+  ExchangeToken = 'EXCHANGE_TOKEN',
 }
 
 export const gameAuthenticator = (socket: Socket, next: any) => {
@@ -44,8 +51,9 @@ export const gameAuthenticator = (socket: Socket, next: any) => {
   next();
 };
 
-const subscribeGameUpdateEvent = (nop: Socket, player: Player) => {
+const subscribeTokenPricesUpdateEvent = (nop: Socket, player: Player) => {
   subscribers[player.id] = (progress: any) => {
+    emitPlayerUpdatedEvent(nop, player);
     nop.emit(SocketEventName.GameUpdated, progress);
   };
 };
@@ -54,15 +62,25 @@ const emitLoggedInEvent = (nop: Socket, player: Player) => {
   nop.emit(SocketEventName.LoggedIn, player);
 };
 
+const emitPlayerUpdatedEvent = (nop: Socket, player: Player) => {
+  nop.emit(SocketEventName.PlayerUpdated, player);
+};
+
 const brodcastPlayerJoinedEvent = (nop: Socket, player: Player) => {
   nop.broadcast.emit(SocketEventName.PlayerJoined, player);
+};
+
+const handleExchangeTokenEvent = (nop: Socket, player: Player) => {
+  nop.on(SocketEventName.ExchangeToken, (tokenId: string, amount: number) => {
+    cryptoCrash.addTransaction(player.id, tokenId, amount);
+  });
 };
 
 const brodcastPlayerLeftEvent = (nop: Socket, player: Player) => {
   nop.broadcast.emit(SocketEventName.PlayerLeft, player);
 };
 
-const handlePlayerLeftEvent = (nop: Socket, player: Player) => {
+const handleDisconnect = (nop: Socket, player: Player) => {
   nop.on('disconnect', () => {
     cryptoCrash.removePlayer(player.id);
     brodcastPlayerLeftEvent(nop, player);
@@ -76,11 +94,13 @@ export const gameHandler = (nop: Socket) => {
 
   emitLoggedInEvent(nop, player);
 
-  subscribeGameUpdateEvent(nop, player);
+  subscribeTokenPricesUpdateEvent(nop, player);
 
   brodcastPlayerJoinedEvent(nop, player);
 
-  handlePlayerLeftEvent(nop, player);
+  handleExchangeTokenEvent(nop, player);
+
+  handleDisconnect(nop, player);
 };
 
 export {};

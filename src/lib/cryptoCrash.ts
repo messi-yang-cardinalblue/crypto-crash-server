@@ -19,7 +19,17 @@ export class CryptoCrash {
     return {
       id: this.id,
       players: this.players,
-      tokens: this.tokens,
+      tokens: this.tokens.map((token) => {
+        return {
+          ...token,
+          historyPrices: token.historyPrices.slice(
+            token.historyPrices.length > 10
+              ? token.historyPrices.length - 10
+              : 0,
+            token.historyPrices.length
+          ),
+        };
+      }),
       transactions: this.transactions,
     };
   }
@@ -47,18 +57,23 @@ export class CryptoCrash {
     }
 
     token.price = price;
+    token.historyPrices.push(price);
   }
   public removePlayer(playerId: string) {
     this.players = this.players.filter((p) => p.id != playerId);
   }
-  public addTransaction(playerId: string, tokenId: string, amount: number) {
+  public addTransaction(
+    playerId: string,
+    tokenId: string,
+    amount: number
+  ): Transaction | null {
     const token = this.getToken(tokenId);
     if (!token) {
-      return;
+      return null;
     }
     const player = this.getPlayer(playerId);
     if (!player) {
-      return;
+      return null;
     }
     const tokenOwnership = player.tokenOwnerships[tokenId];
 
@@ -69,13 +84,13 @@ export class CryptoCrash {
     const noEnoughToken =
       amount < 0 && tokenOwnership.amount < Math.abs(amount);
     if (zeroAmount) {
-      return;
+      return null;
     }
     if (noEnoughCash) {
-      return;
+      return null;
     }
     if (noEnoughToken) {
-      return;
+      return null;
     }
 
     const transaction = createTransaction(
@@ -87,6 +102,9 @@ export class CryptoCrash {
     this.transactions.push(transaction);
     player.cash -= totalPrice;
     tokenOwnership.amount += amount;
+    tokenOwnership.amount = Math.round(tokenOwnership.amount * 100) / 100;
+
+    return transaction;
   }
   private getPlayer(playerId: string): Player | null {
     return this.players.find((p) => p.id === playerId) || null;

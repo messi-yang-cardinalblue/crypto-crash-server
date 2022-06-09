@@ -4,6 +4,7 @@ export type Token = {
   id: string;
   name: string;
   price: number;
+  historyPrices: number[];
 };
 
 export function createToken(name: string, price: number): Token {
@@ -11,5 +12,6 @@ export function createToken(name: string, price: number): Token {
     id: uuidv4(),
     name,
     price,
+    historyPrices: [],
   };
 }

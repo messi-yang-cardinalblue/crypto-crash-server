@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { Transaction } from './transaction';
 
 export type Player = {
   id: string;
@@ -9,6 +10,7 @@ export type Player = {
       amount: number;
     };
   };
+  transactions: Transaction[];
 };
 
 export function createPlayer(name: string, cash: number): Player {
@@ -17,5 +19,6 @@ export function createPlayer(name: string, cash: number): Player {
     name,
     cash,
     tokenOwnerships: {},
+    transactions: [],
   };
 }

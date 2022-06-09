@@ -3,6 +3,7 @@ import { Token } from '../../entity/token';
 import { Player } from '../../entity/player';
 import { Transaction } from '../../entity/transaction';
 import { CryptoCrash } from '../../lib/cryptoCrash';
+import { getLastItemsFromArray } from '../../utils/common';
 
 const cryptoCrash = new CryptoCrash();
 
@@ -13,10 +14,10 @@ const updateAllTokenPrices = () => {
   const allTokens = cryptoCrash.getTokens();
   allTokens.forEach((token: Token) => {
     /* -10% ~ +10% */
-    const marginPercent = Math.round(Math.random() * 200 - 100) / 1000;
+    const marginPercent = Math.round(Math.random() * 2000 - 1000) / 10000;
     const newPrice = token.price + marginPercent * token.price;
-    const newPriceWithPrecisionOfTwo = Math.round(newPrice * 100) / 100;
-    cryptoCrash.updateTokenPrice(token.id, newPriceWithPrecisionOfTwo);
+    const newPriceWithPrecisionOfThree = Math.round(newPrice * 1000) / 1000;
+    cryptoCrash.updateTokenPrice(token.id, newPriceWithPrecisionOfThree);
   });
 
   /* Emit new information to client */
@@ -65,13 +66,15 @@ const subscribeTokenPricesUpdateEvent = (nop: Socket) => {
   subscribers[player.id] = (progress: any) => {
     emitPlayerUpdatedEvent(nop);
     nop.emit(SocketEventName.GameUpdated, progress);
-    nop.emit(SocketEventName.PlayerUpdated, player);
   };
 };
 
 const emitPlayerUpdatedEvent = (nop: Socket) => {
   const player: Player = nop.data.player;
-  nop.emit(SocketEventName.PlayerUpdated, player);
+  nop.emit(SocketEventName.PlayerUpdated, {
+    ...player,
+    transactions: getLastItemsFromArray(player.transactions, 5),
+  });
 };
 
 const broadcastTokenExchangedEvent = (

@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { getLastItemsFromArray } from '../utils/common';
 import { Player, createPlayer } from '../entity/player';
 import { Token, createToken } from '../entity/token';
 import { Transaction, createTransaction } from '../entity/transaction';
@@ -8,7 +9,6 @@ export class CryptoCrash {
   private initialCash: number = 3000000;
   private players: Player[];
   private tokens: Token[];
-  private transactions: Transaction[];
 
   constructor() {
     this.id = uuidv4();
@@ -22,27 +22,31 @@ export class CryptoCrash {
       createToken('Luna', 100),
       createToken('Chiwawacoin', 100),
     ];
-    this.transactions = [];
   }
   public output() {
     return {
       id: this.id,
-      players: this.players,
+      players: this.players.map((player) => {
+        return {
+          ...player,
+          transactions: getLastItemsFromArray(player.transactions, 5),
+        };
+      }),
       tokens: this.tokens.map((token) => {
         return {
           ...token,
-          historyPrices: this.getLastItemsFromArray(token.historyPrices, 30),
+          historyPrices: getLastItemsFromArray(token.historyPrices, 30),
         };
       }),
     };
   }
   public reset() {
-    this.transactions = [];
     this.players.forEach((p) => {
       p.cash = this.initialCash;
       Object.keys(p.tokenOwnerships).forEach(
         (tokenId) => (p.tokenOwnerships[tokenId].amount = 0)
       );
+      p.transactions = [];
     });
     this.tokens.forEach((t) => {
       t.price = t.historyPrices[0];
@@ -115,10 +119,10 @@ export class CryptoCrash {
       tokenPrice,
       amount
     );
-    this.transactions.push(transaction);
+    player.transactions.push(transaction);
     player.cash -= totalPrice;
     tokenOwnership.amount += amount;
-    tokenOwnership.amount = Math.round(tokenOwnership.amount * 100) / 100;
+    tokenOwnership.amount = Math.round(tokenOwnership.amount * 1000) / 1000;
 
     return transaction;
   }
@@ -127,11 +131,5 @@ export class CryptoCrash {
   }
   public getToken(tokenId: string): Token | null {
     return this.tokens.find((t) => t.id === tokenId) || null;
-  }
-  private getLastItemsFromArray<T>(items: T[], count: number) {
-    return items.slice(
-      items.length > count ? items.length - 10 : 0,
-      items.length
-    );
   }
 }

@@ -11,3 +11,10 @@ export const generateHexColor = (): string => {
 
   return `#${a}${b}${c}`;
 };
+
+export function getLastItemsFromArray<T>(items: T[], count: number) {
+  return items.slice(
+    items.length > count ? items.length - count : 0,
+    items.length
+  );
+}

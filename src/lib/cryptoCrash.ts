@@ -6,7 +6,7 @@ import { Transaction, createTransaction } from '../entity/transaction';
 
 export class CryptoCrash {
   private id: string;
-  private initialCash: number = 3000000;
+  private initialCash: number = 1000;
   private players: Player[];
   private tokens: Token[];
 
@@ -15,12 +15,12 @@ export class CryptoCrash {
     this.players = [];
     this.tokens = [
       createToken('Batcoin', 100),
-      createToken('Etherun', 100),
-      createToken('Dogycoin', 100),
-      createToken('Beyonce', 100),
-      createToken('PicCoin', 100),
-      createToken('Luna', 100),
-      createToken('Chiwawacoin', 100),
+      createToken('Ethereal', 10),
+      createToken('Dogycoin', 1),
+      createToken('Beyonce Coin', 10),
+      createToken('PicCoin', 10),
+      createToken('Lunacy', 5),
+      createToken('Untether', 1),
     ];
   }
   public output() {

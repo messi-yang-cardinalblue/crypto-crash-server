@@ -14,10 +14,20 @@ const updateAllTokenPrices = () => {
   const allTokens = cryptoCrash.getTokens();
   allTokens.forEach((token: Token) => {
     /* -10% ~ +10% */
-    const marginPercent = Math.round(Math.random() * 2000 - 1000) / 10000;
-    const newPrice = token.price + marginPercent * token.price;
-    const newPriceWithPrecisionOfThree = Math.round(newPrice * 1000) / 1000;
-    cryptoCrash.updateTokenPrice(token.id, newPriceWithPrecisionOfThree);
+    const approxRandn1 = Math.random()+Math.random()+Math.random()+Math.random() - (Math.random()+Math.random()+Math.random()+Math.random());
+    const approxRandn2 = Math.random()+Math.random()+Math.random()+Math.random() - (Math.random()+Math.random()+Math.random()+Math.random());
+    
+    const buyOrSell = (token.price > 1000+3000*Math.random()) ? -1 : Math.floor(Math.random()*3-1);
+    const newEnergy = (token._energy + token.price*buyOrSell +30)*0.95;
+    const mu = (newEnergy < 500) ? (-0.1*Math.random()) : (0.05*Math.random());
+    const sigma = 0.05;
+    const priceFactor =  Math.exp(mu + approxRandn1*sigma);
+    const newPrice = Math.abs(token.price*priceFactor + sigma*approxRandn2);
+    const newPriceWithPrecisionOfTwo = Math.round(newPrice * 100) / 100;
+
+    cryptoCrash.updateTokenEnergy(token.id, newEnergy);
+
+    cryptoCrash.updateTokenPrice(token.id, newPriceWithPrecisionOfTwo);
 
     cryptoCrash.saveHistoryTokenPrice(token.id);
   });

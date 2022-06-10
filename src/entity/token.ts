@@ -14,6 +14,6 @@ export function createToken(name: string, price: number): Token {
     name,
     price,
     historyPrices: [price],
-    _energy: 0
+    _energy: Math.random()*1000
   };
 }

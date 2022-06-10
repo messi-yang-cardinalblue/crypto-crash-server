@@ -17,12 +17,12 @@ const updateAllTokenPrices = () => {
     const approxRandn1 = Math.random()+Math.random()+Math.random()+Math.random() - (Math.random()+Math.random()+Math.random()+Math.random());
     const approxRandn2 = Math.random()+Math.random()+Math.random()+Math.random() - (Math.random()+Math.random()+Math.random()+Math.random());
     
-    const buyOrSell = Math.floor(Math.random()*3-1); // (token._energy > 1000+1000*Math.random()) ? -1 : Math.floor(Math.random()*3-1);
-    const newEnergy = (token._energy + token.price*buyOrSell + 100)*0.9;
-    const mu = (newEnergy > 0) ? (-0.2*Math.random()) : (0.05*Math.random());
-    const sigma = 0.1;
+    const buyOrSell = (token.price > 1000+3000*Math.random()) ? -1 : Math.floor(Math.random()*3-1);
+    const newEnergy = (token._energy + token.price*buyOrSell +30)*0.95;
+    const mu = (newEnergy < 500) ? (-0.1*Math.random()) : (0.05*Math.random());
+    const sigma = 0.05;
     const priceFactor =  Math.exp(mu + approxRandn1*sigma);
-    const newPrice = Math.abs(token.price*priceFactor + approxRandn2);
+    const newPrice = Math.abs(token.price*priceFactor + sigma*approxRandn2);
     const newPriceWithPrecisionOfTwo = Math.round(newPrice * 100) / 100;
 
     cryptoCrash.updateTokenEnergy(token.id, newEnergy);

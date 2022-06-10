@@ -17,7 +17,7 @@ const updateAllTokenPrices = () => {
     const approxRandn1 = Math.random()+Math.random()+Math.random()+Math.random() - (Math.random()+Math.random()+Math.random()+Math.random());
     const approxRandn2 = Math.random()+Math.random()+Math.random()+Math.random() - (Math.random()+Math.random()+Math.random()+Math.random());
     
-    const buyOrSell = (token.price > 1000+3000*Math.random()) ? -1 : Math.floor(Math.random()*3-1);
+    const buyOrSell = (token.price > 3000*Math.random()) ? -1 : Math.floor(Math.random()*3-1);
     const newEnergy = (token._energy + token.price*buyOrSell +30)*0.95;
     const mu = (newEnergy < 500) ? (-0.1*Math.random()) : (0.05*Math.random());
     const sigma = 0.05;

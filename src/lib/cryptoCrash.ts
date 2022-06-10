@@ -141,6 +141,8 @@ export class CryptoCrash {
     tokenOwnership.amount += amount;
     tokenOwnership.amount = Math.round(tokenOwnership.amount * 1000) / 1000;
 
+    // record the impact in the token's energy
+    this.updateTokenEnergy(tokenId, token._energy + amount*token.price);
     return transaction;
   }
   private getPlayer(playerId: string): Player | null {

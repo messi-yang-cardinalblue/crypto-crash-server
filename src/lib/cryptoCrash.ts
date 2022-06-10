@@ -50,6 +50,7 @@ export class CryptoCrash {
     });
     this.tokens.forEach((t) => {
       t.price = t.historyPrices[0];
+      t._energy = Math.random() * 1000;
       t.historyPrices = [t.price];
     });
   }

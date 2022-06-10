@@ -18,6 +18,8 @@ const updateAllTokenPrices = () => {
     const newPrice = token.price + marginPercent * token.price;
     const newPriceWithPrecisionOfThree = Math.round(newPrice * 1000) / 1000;
     cryptoCrash.updateTokenPrice(token.id, newPriceWithPrecisionOfThree);
+
+    cryptoCrash.saveHistoryTokenPrice(token.id);
   });
 
   /* Emit new information to client */

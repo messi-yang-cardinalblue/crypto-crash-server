@@ -77,7 +77,14 @@ export class CryptoCrash {
     }
 
     token.price = price;
-    token.historyPrices.push(price);
+  }
+  public saveHistoryTokenPrice(tokenId: string) {
+    const token = this.getToken(tokenId);
+    if (!token) {
+      return;
+    }
+
+    token.historyPrices.push(token.price);
   }
   public removePlayer(playerId: string) {
     this.players = this.players.filter((p) => p.id != playerId);

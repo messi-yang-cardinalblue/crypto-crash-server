@@ -56,11 +56,13 @@ enum SocketEventName {
   PlayerLeft = 'PLAYER_LEFT',
   TokenExchanged = 'TOKEN_EXCHANGED',
   MessageAnnounced = 'MESSAGE_ANNOUNCED',
+  TokenDataReturned = 'TOKEN_DATA_RETURNED',
   ExchangeToken = 'EXCHANGE_TOKEN',
   StopGame = 'STOP_GAME',
   StartGame = 'START_GAME',
   ResetGame = 'RESET_GAME',
   AnnounceMessage = 'ANNOUNCE_MESSAGE',
+  RequestTokenData = 'REQUEST_TOKEN_DATA',
 }
 
 export const gameAuthenticator = (socket: Socket, next: any) => {
@@ -87,6 +89,15 @@ const emitPlayerUpdatedEvent = (nop: Socket) => {
     ...player,
     transactions: getLastItemsFromArray(player.transactions, 5),
   });
+};
+
+const emitTokenDataReturnedEvent = (nop: Socket, tokenId: string) => {
+  const token = cryptoCrash.getToken(tokenId);
+  if (!token) {
+    return;
+  }
+
+  nop.emit(SocketEventName.TokenDataReturned, token);
 };
 
 const broadcastTokenExchangedEvent = (
@@ -158,6 +169,12 @@ const handleResetGameEvent = (nop: Socket) => {
   });
 };
 
+const handleRequestTokenDataEvent = (nop: Socket) => {
+  nop.on(SocketEventName.RequestTokenData, (tokenId: string) => {
+    emitTokenDataReturnedEvent(nop, tokenId);
+  });
+};
+
 const handleAnnounceMessage = (nop: Socket) => {
   nop.on(SocketEventName.AnnounceMessage, (type: number, msg: string) => {
     brodcastMessageAnnouncedEvent(nop, type, msg);
@@ -188,6 +205,8 @@ export const gameHandler = (nop: Socket) => {
   handleStartGameEvent(nop);
 
   handleResetGameEvent(nop);
+
+  handleRequestTokenDataEvent(nop);
 
   handleDisconnect(nop);
 };

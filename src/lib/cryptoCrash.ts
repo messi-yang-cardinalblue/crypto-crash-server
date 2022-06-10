@@ -78,6 +78,16 @@ export class CryptoCrash {
 
     token.price = price;
   }
+
+  public updateTokenEnergy(tokenId: string, energy: number) {
+    const token = this.getToken(tokenId);
+    if (!token) {
+      return;
+    }
+
+    token._energy = energy;
+  }
+
   public saveHistoryTokenPrice(tokenId: string) {
     const token = this.getToken(tokenId);
     if (!token) {

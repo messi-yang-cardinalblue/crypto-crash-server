@@ -5,6 +5,7 @@ export type Token = {
   name: string;
   price: number;
   historyPrices: number[];
+  _energy: number; // internal parameter for tracking how much $ has been put into a token
 };
 
 export function createToken(name: string, price: number): Token {
@@ -13,5 +14,6 @@ export function createToken(name: string, price: number): Token {
     name,
     price,
     historyPrices: [price],
+    _energy: 0
   };
 }
